@@ -1,0 +1,298 @@
+
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>three.js webgl - equirectangular panorama viewer</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+				background-color: #000000;
+				margin: 0px;
+				overflow: hidden;
+			}
+
+			#info {
+				position: absolute;
+				top: 0px; width: 100%;
+				color: #ffffff;
+				padding: 5px;
+				font-family:Monospace;
+				font-size:13px;
+				font-weight: bold;
+				text-align:center;
+				text-shadow: 0px 0px 4px rgba(0, 0, 0, 1);
+				opacity: 0.25;
+				filter: alpha(opacity=25); /* For IE8 and earlier */
+			}
+
+			#info:hover {
+				opacity: 1.0;
+				filter: alpha(opacity=100); /* For IE8 and earlier */
+			}
+			
+			#status {
+				position: absolute;
+				top: 25%; width: 100%;
+				text-align:center;
+				z-index: 9999;
+				opacity: 1.0; 
+				filter: 100;  /* For IE8 and earlier */
+			}
+			
+			#status_text {
+				color: #ffffff;
+				font-family:Monospace;
+				font-size:72px;
+				font-weight: bold;
+				text-shadow: 0px 0px 6px rgba(0, 0, 0, 1);
+			}
+			
+			#about {
+				position: absolute;
+				bottom: 1%; width: 100%;
+				color: #ffffff;
+				padding: 5px;
+				font-family:Monospace;
+				font-size:13px;
+				font-weight: bold;
+				text-align:center;
+				text-shadow: 0px 0px 4px rgba(0, 0, 0, 1);
+				opacity: 0.25;
+				filter: alpha(opacity=25); /* For IE8 and earlier */
+			}
+			
+			#about:hover {
+				opacity: 1.0;
+				filter: alpha(opacity=100); /* For IE8 and earlier */
+			}
+			
+			a {
+				color: #ffffff;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="info">
+			<input type="file" id="file" name="file" />
+			<span id="file_info" ></span><br />
+		</div>
+		<div id="status"><span id="status_text"></span></div>
+		<div id="container"></div>
+		
+		<script src="three.min.js"></script>
+
+		<script>
+			
+			
+
+			var camera, scene, renderer;
+			var fov;
+			
+			var isUserInteracting = false,
+			onMouseDownMouseX = 0, onMouseDownMouseY = 0,
+			lon = 0, onMouseDownLon = 0,
+			lat = 0, onMouseDownLat = 0,
+			phi = 0, theta = 0;
+			init();
+			animate();
+			function init() {
+
+				var container, mesh;
+				
+				
+				container = document.getElementById( 'container' );
+
+				camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 1100 );
+				camera.target = new THREE.Vector3( 0, 0, 0 );
+				var fov = camera.fov;
+				scene = new THREE.Scene();
+
+				var geometry = new THREE.SphereGeometry( 500, 60, 40 );
+				geometry.applyMatrix( new THREE.Matrix4().makeScale( -1, 1, 1 ) );
+
+				var material = new THREE.MeshBasicMaterial( {
+					map:  THREE.ImageUtils.loadTexture( "data:image/png;base64,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")
+				} );
+				
+				var image = new Image();
+				
+				image.onload = function () {
+					material.map=new THREE.Texture( image );
+					material.map.needsUpdate = true; 
+					if (fov) {
+						camera.fov=fov;
+						camera.updateProjectionMatrix();
+					}
+					document.getElementById('status_text').innerHTML='';
+					container.style.opacity=1.0;
+				};
+				
+				mesh = new THREE.Mesh( geometry, material );
+				
+				scene.add( mesh );
+
+				renderer = new THREE.WebGLRenderer();
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				container.appendChild( renderer.domElement );
+
+				document.addEventListener( 'mousedown', onDocumentMouseDown, false );
+				document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+				document.addEventListener( 'mouseup', onDocumentMouseUp, false );
+				document.addEventListener( 'mousewheel', onDocumentMouseWheel, false );
+				document.addEventListener( 'DOMMouseScroll', onDocumentMouseWheel, false);
+
+				//
+
+				document.addEventListener( 'dragover', function ( event ) {
+
+					event.preventDefault();
+					event.dataTransfer.dropEffect = 'copy';
+
+				}, false );
+
+				document.addEventListener( 'dragenter', function ( event ) {
+
+					container.style.opacity = 0.5;
+
+				}, false );
+
+				document.addEventListener( 'dragleave', function ( event ) {
+
+					container.style.opacity = 1;
+
+				}, false );
+				
+				document.addEventListener( 'dblclick', function ( event ) {
+					if (fov) {
+						camera.fov=fov;
+						camera.updateProjectionMatrix();
+					}
+				}, false );
+				
+
+				function updateTexture(file){
+					document.getElementById('status_text').innerHTML='Loading';
+					document.getElementById('file_info').innerHTML=['<strong>', escape(file.name), '</strong> (', file.type || 'n/a', ')'].join('');
+					var reader = new FileReader();
+					reader.onloadend = function () {
+							image.crossOrigin = this.crossOrigin;
+							image.src = reader.result;
+					};
+					reader.readAsDataURL(file);
+				}
+				
+				document.addEventListener( 'drop', function ( event ) {
+					event.preventDefault();
+					
+					updateTexture( event.dataTransfer.files[ 0 ] );
+				}, false );
+								
+				document.getElementById('file').addEventListener('change', function ( event ) {
+					container.style.opacity = 0.5;
+					updateTexture( event.target.files[ 0 ] );
+				}, false);
+
+				//
+
+				window.addEventListener( 'resize', onWindowResize, false );
+				
+				
+			}
+			
+
+			function onWindowResize() {
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+			}
+
+			function onDocumentMouseDown( event ) {
+
+				event.preventDefault();
+
+				isUserInteracting = true;
+
+				onPointerDownPointerX = event.clientX;
+				onPointerDownPointerY = event.clientY;
+
+				onPointerDownLon = lon;
+				onPointerDownLat = lat;
+
+			}
+
+			function onDocumentMouseMove( event ) {
+
+				if ( isUserInteracting === true ) {
+
+					lon = ( onPointerDownPointerX - event.clientX ) * 0.1 + onPointerDownLon;
+					lat = ( event.clientY - onPointerDownPointerY ) * 0.1 + onPointerDownLat;
+
+				}
+
+			}
+
+			function onDocumentMouseUp( event ) {
+
+				isUserInteracting = false;
+
+			}
+
+			function onDocumentMouseWheel( event ) {
+
+				// WebKit
+
+				if ( event.wheelDeltaY ) {
+
+					camera.fov -= event.wheelDeltaY * 0.05;
+
+				// Opera / Explorer 9
+
+				} else if ( event.wheelDelta ) {
+
+					camera.fov -= event.wheelDelta * 0.05;
+
+				// Firefox
+
+				} else if ( event.detail ) {
+
+					camera.fov += event.detail * 1.0;
+
+				}
+
+				camera.updateProjectionMatrix();
+
+			}
+
+			function animate() {
+
+				requestAnimationFrame( animate );
+				update();
+
+			}
+
+			function update() {
+
+				lat = Math.max( - 85, Math.min( 85, lat ) );
+				phi = THREE.Math.degToRad( 90 - lat );
+				theta = THREE.Math.degToRad( lon );
+
+				camera.target.x = 500 * Math.sin( phi ) * Math.cos( theta );
+				camera.target.y = 500 * Math.cos( phi );
+				camera.target.z = 500 * Math.sin( phi ) * Math.sin( theta );
+
+				camera.lookAt( camera.target );
+
+				renderer.render( scene, camera );
+
+			}
+			
+
+		</script>
+		<div id="about">This app is based on <a href="https://github.com/mrdoob/three.js/blob/master/examples/webgl_panorama_equirectangular.html">three.js webgl - equirectangular panorama demo</a><br /></div>
+	</body>
+</html>
