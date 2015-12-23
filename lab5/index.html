@@ -30,7 +30,10 @@ test
 		<label for="Cre">Затраты на переналадку</label>
 		<input type="number" id="Cre" value="" data-clear-btn="true" placeholder="Затраты на переналадку"/>
 	</div>
-	
+	<div class="ui-bar ui-bar-e">
+		<label for="Cf">Функция затрат(имеет больший приоритет)</label>
+		<input type="text" id="Cf" value="" data-clear-btn="true" placeholder="Функция затрат (не обязательное поле)"/>
+	</div>	
 	<div class="ui-bar ui-bar-e">
 		<label for="it">Максимальное значение запасов</label>
 		<input type="number" id="it" value="" data-clear-btn="true" placeholder="Запасы (it)"/>
@@ -47,13 +50,13 @@ test
 		<input type="button" id="calc" value="Рассчитать" />
 	</div>
 </form>
-<a id="lnkDialog" href="#popUp_main" data-inline="true" data-rel="popup" data-position-to="window" style="dislpay:none;"></a>
+<a id="lnkDialog" href="#popUp_main" data-inline="true" data-rel="popup" data-position-to="window" style="display:none;"></a>
 <div data-role="popup" id="popUp_main" class="ui-content">text</div>
 <div id="content" class="ui-bar ui-bar-e" data-role="content"></div>
 <script type="text/javascript">
 function getPopUP(message, alt, id){
 	var r = "";
-	r = '<a href="#popUp_main" data-inline="true" data-rel="popup" data-position-to="window" style="dislpay:none;" onClick="showPopUP(\''+id+'\');">';
+	r = '<a href="#popUp_main" data-inline="true" data-rel="popup" data-position-to="window" style="display:none;" onClick="showPopUP(\''+id+'\');">';
 	r = r + alt;
 	r = r + '</a>';
 	r = r + '<div id="'+id+'" style="display:none;">';
@@ -84,6 +87,7 @@ $(document).ready( function() {
 		$('#given_body').append("<p id=\"given\"></p>");
 		
 		var Dt = $('#Dt').val().replace(new RegExp(" ", 'g'),"").split(",");
+		var Cf = $('#Cf').val().replace(new RegExp(" ", 'g'),"").split(",");
 		var xt = $('#xt').val();
 		var it = $('#it').val();
 		var Cpr = $('#Cpr').val();
@@ -122,8 +126,19 @@ $(document).ready( function() {
 		
 		$('#solution').append("Функция затрат C<sub>t</sub>:"+"<br />");
 		line="";
+		if ((Cf.length-1)!=xt) {
+			Cf=[];
+			for (i=0; i<=xt; i++) {
+				tmp = ((i>0)?1:0)*Cre+Cpr*i;
+				Cf.push(tmp);
+			}
+		} else {
+			for (i=0; i<Cf.length; i++) {
+				Cf[i] = parseInt(Cf[i]);
+			}
+		}
 		for (i=0; i<=xt; i++) {
-			tmp = ((i>0)?1:0)*Cre+Cpr*i;
+			tmp = Cf[i];
 			line = "C<sub>t</sub>("+i+") = " + tmp;
 			$('#solution').append(line+"<br />");
 		}
@@ -142,6 +157,10 @@ $(document).ready( function() {
 		var minX;
 		var minC;
 		var msg;
+		var C_;
+		var C_stor;
+		var C_pre;
+		var C_full;
 		for (N=1; N<=Nmax; N++){
 			line="";
 			$('#solution').append(line+"<br />");
@@ -175,12 +194,12 @@ $(document).ready( function() {
 			I=[];
 			C.push([]);
 			for (i=0; i<=xt; i++) {
-				tmp = ((i>0)?1:0)*Cre+Cpr*i;
+				tmp = Cf[i];// ((i>0)?1:0)*Cre+Cpr*i;
 				C[0].push(tmp);
 			}
 			for (n=1; n<=N; n++) {
 				line = "";
-				line = n + " - й с конца период.";
+				line = n + " - й с конца период. (n="+n+") ["+(N-n+1)+"]";
 				$('#solution').append(line+"<br />");
 				D = DD[DD.length-n];
 				line = "D(спрос) = "+D;
@@ -226,16 +245,16 @@ $(document).ready( function() {
 						
 							line="";
 							line=line + "Производим x<sub>i</sub> = "+x+"<br />";
-							var C_ = C[0][x];
+							C_ = C[0][x];
 							line=line + "Затраты за производство  = С<sub>"+n+"</sub>("+ x +")="+C_+"<br />";
 							line=line + "Есть на складе i = "+i+"<br />";
-							var C_stor = (i+x-D);
+							C_stor = (i+x-D);
 							line=line + "Затраты на хранение = "+C_stor+"<br />";
-							var C_pre = C[n-1][i+x-D];
+							C_pre = C[n-1][i+x-D];
 							if (n!=1) {
 								line=line + "Затраты за предидущий период = С<sub>"+(n-1)+"</sub>("+(i+x-D)+") = "+C_pre +"<br />";
 							}
-							var C_full = C_ + C_stor + C_pre;
+							C_full = C_ + C_stor + C_pre;
 							tmp = C_full;
 							msg = line;
 							line=line + "Затраты за этот период = "+C_pre;
@@ -282,6 +301,10 @@ $(document).ready( function() {
 						cell.append("x<sub>"+n+"</sub>");
 					} else {
 						if ($.isNumeric(minX) ) {
+							//C_ = C[0][x];
+							//C_stor = (i+x-D);
+							//C_pre = C[n-1][i+x-D];
+							//C_full = C_ + C_stor + C_pre;
 							cell.append(minX);
 						} else {
 							cell.append("&mdash;");
