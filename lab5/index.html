@@ -1,0 +1,321 @@
+<!DOCTYPE HTML>
+<html>
+<meta charset="utf-8"> 
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<head>
+<title>
+test
+</title>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jquerymobile/1.4.3/jquery.mobile.min.css" />
+<script src="https://ajax.googleapis.com/ajax/libs/jquerymobile/1.4.3/jquery.mobile.min.js"></script>
+<style>
+</style>
+</head>
+<body data-role="page">
+
+<form>
+	<div class="ui-bar ui-bar-e">
+		<input type="button" id="load_example" value="Загрузить пример" />
+	</div>
+	<div class="ui-bar ui-bar-e">
+		<label for="Dt">Спрос (D<sub>t</sub>)</label>
+		<input type="text" id="Dt" value="" data-clear-btn="true" placeholder="Спрос (Dt)"/>
+	</div>
+	<div class="ui-bar ui-bar-e">
+		<label for="Cpr">Затраты на производство</label>
+		<input type="number" id="Cpr" value="" data-clear-btn="true" placeholder="Затраты на производство"/>
+	</div>
+	<div class="ui-bar ui-bar-e">
+		<label for="Cre">Затраты на переналадку</label>
+		<input type="number" id="Cre" value="" data-clear-btn="true" placeholder="Затраты на переналадку"/>
+	</div>
+	
+	<div class="ui-bar ui-bar-e">
+		<label for="it">Максимальное значение запасов</label>
+		<input type="number" id="it" value="" data-clear-btn="true" placeholder="Запасы (it)"/>
+	</div>
+	<div class="ui-bar ui-bar-e">
+		<label for="xt">Максимальное значение производства</label>
+		<input type="number" id="xt" value="" data-clear-btn="true" placeholder="Производство (xt)"/>
+	</div>
+	<div class="ui-bar ui-bar-e">
+		<label for="N">Число периодов</label>
+		<input type="number" id="N" value="" data-clear-btn="true" placeholder="Число периодов"/>
+	</div>
+	<div class="ui-bar ui-bar-e">
+		<input type="button" id="calc" value="Рассчитать" />
+	</div>
+</form>
+<a id="lnkDialog" href="#popUp_main" data-inline="true" data-rel="popup" data-position-to="window" style="dislpay:none;"></a>
+<div data-role="popup" id="popUp_main" class="ui-content">text</div>
+<div id="content" class="ui-bar ui-bar-e" data-role="content"></div>
+<script type="text/javascript">
+function getPopUP(message, alt, id){
+	var r = "";
+	r = '<a href="#popUp_main" data-inline="true" data-rel="popup" data-position-to="window" style="dislpay:none;" onClick="showPopUP(\''+id+'\');">';
+	r = r + alt;
+	r = r + '</a>';
+	r = r + '<div id="'+id+'" style="display:none;">';
+	r = r + '<p>'+message+'</p>';
+	r = r + '</div>';
+	return r;
+}
+
+function showPopUP(id){
+	$('#popUp_main').empty();
+	$('#popUp_main').append($('#'+id).html());
+	$('#lnkDialog').click();
+}
+
+function appendPopUp(element, popup){
+	element.append(popup);
+}
+
+$(document).ready( function() {
+	$('#calc').click( function () {
+		var c = $('#content');
+		
+		var i;
+		var line;
+		c.empty();
+		c.append("<div class=\"ui-body ui-body-a ui-corner-all\" id=\"given_body\"></div>");
+		$('#given_body').append("<h3 id=\"given_head\">Дано:</h3>");
+		$('#given_body').append("<p id=\"given\"></p>");
+		
+		var Dt = $('#Dt').val().replace(new RegExp(" ", 'g'),"").split(",");
+		var xt = $('#xt').val();
+		var it = $('#it').val();
+		var Cpr = $('#Cpr').val();
+		var Cre = $('#Cre').val();
+		var Nmax = $('#N').val();
+		var tmp=0;
+		$('#given').append("Спрос:"+"<br />");
+		line="";
+		line = "D<sub>t</sub> = ";
+		for (i=0; i<Dt.length; i++) {
+			line = line + Dt[i] + ", ";
+		}
+		line = line.slice(0, line.length-2) + ";";
+		$('#given').append(line+"<br />");
+		
+		$('#given').append("Затраты на производство &mdash; "+Cpr+"<br />");
+		
+		$('#given').append("Затраты на переналадку &mdash; "+Cre+"<br />");
+		
+		line="";
+		$('#given').append("Запасы:"+"<br />");
+		line="i<sub>t</sub> = " + "0.." + it + ";";
+		$('#given').append(line+"<br />");
+		
+		line="";
+		$('#given').append("Производство:"+"<br />");
+		line="x<sub>t</sub> = " + "0.." + xt + ";";
+		$('#given').append(line+"<br />");
+		
+		
+		
+		
+		c.append("<div class=\"ui-body ui-body-a ui-corner-all\" id=\"solution_body\"></div>");
+		$('#solution_body').append("<h3 id=\"solution_head\">Решение:</h3>");
+		$('#solution_body').append("<p id=\"solution\"></p>");
+		
+		$('#solution').append("Функция затрат C<sub>t</sub>:"+"<br />");
+		line="";
+		for (i=0; i<=xt; i++) {
+			tmp = ((i>0)?1:0)*Cre+Cpr*i;
+			line = "C<sub>t</sub>("+i+") = " + tmp;
+			$('#solution').append(line+"<br />");
+		}
+		var N;
+		var n;
+		var DD;
+		var j;
+		var x;
+		var tb;
+		var row;
+		var cell;
+		var C;
+		var D;
+		var I;
+		var r;
+		var minX;
+		var minC;
+		var msg;
+		for (N=1; N<=Nmax; N++){
+			line="";
+			line="Расчет на " + N + " период";
+			if ((N%10>1)&&(N%10<=4)) {
+				if ((N>=10)&&(N<=20)) {
+					line=line+"ов";
+				} else {
+					line=line+"а";
+				}
+			} else {
+				if ((N%10!=1)||(N==11)) {
+					line=line+"ов";
+				}
+			}
+			line=line+" (N="+N+").";
+			$('#solution').append(line+"<br />");
+						
+			line="";
+			
+			line="D<sub>t</sub> = ";
+			DD = Dt.slice(0, N);
+			for (i=0; i<DD.length; i++){
+				line = line + DD[i] + ", "
+			}
+			line = line.slice(0, line.length-2) + ";";
+			$('#solution').append(line+"<br />");
+			C=[];
+			I=[];
+			C.push([]);
+			for (i=0; i<=xt; i++) {
+				tmp = ((i>0)?1:0)*Cre+Cpr*i;
+				C[0].push(tmp);
+			}
+			for (n=1; n<=N; n++) {
+				line = "";
+				line = n + " - й с конца период.";
+				$('#solution').append(line+"<br />");
+				D = DD[DD.length-n];
+				line = "D(спрос) = "+D;
+				$('#solution').append(line+"<br />");
+				
+				line="f<SUB>"+n+"</SUB> = C<SUB>"+n+"</SUB> + (i + x - D) + </SUB>";
+				if (n!=1) {
+					line = line + "C<SUB>"+n-1+"</SUB>";
+				}
+				$('#solution').append(line+"<br />");
+				
+				tmp = "table_"+N+"_"+n;
+				$('#solution').append("<div style=\"overflow-y: auto; overflow-x: auto;\" width=\"95%\"><table style=\"border-style:solid; border-width:1px;border: none; border-collapse: collapse; padding: 0; margin: 0;\" id=\""+tmp+"\" width=\"100%\"></table></div>")
+				tb=$("#"+tmp);
+				C.push([]);
+				for (i=0; i<=it; i++) {
+					C[C.length-1].push(NaN);
+				}
+				for (i=-1; i<=it; i++){
+					tmp = "table_"+N+"_"+n+"_tr_"+i;
+					
+					tb.append("<tr style=\"border-style:solid; border-width:1px;\" id=\""+tmp+"\" height=\""+((1/(it+1))*100)+"%\"></tr>");
+					row = $("#"+tmp);
+					//r=[];
+					minX=NaN;
+					minC=Number.MAX_VALUE;
+					for (x=-1; x<=xt; x++){
+						tmp = "table_"+N+"_"+n+"_tr_"+i+"_td_"+x;
+						row.append("<td class=\"ui-body-d\" style=\"border-style:solid; border-width:1px; text-align: center;\" id=\""+tmp+"\"></td>");
+						cell = $("#"+tmp);
+						if ((i==-1)||(x==-1)) {
+							if (x==-1) {
+								if (i==-1){
+									cell.append("<H3><SUB>i</SUB><SUP>Xi</SUP></H3>");
+								} else {
+									cell.append(i);
+								}
+							} else {
+								cell.append(x);
+							}
+						} else {
+							
+						
+							line="";
+							line=line + "Производим x<sub>i</sub> = "+x+"<br />";
+							var C_ = C[0][x];
+							line=line + "Затраты за производство  = С<sub>"+n+"</sub>("+ x +")="+C_+"<br />";
+							line=line + "Есть на складе i = "+i+"<br />";
+							var C_stor = (i+x-D);
+							line=line + "Затраты на хранение = "+C_stor+"<br />";
+							var C_pre = C[n-1][i+x-D];
+							if (n!=1) {
+								line=line + "Затраты за предидущий период = С<sub>"+(n-1)+"</sub>("+(i+x-D)+") = "+C_pre +"<br />";
+							}
+							var C_full = C_ + C_stor + C_pre;
+							tmp = C_full;
+							msg = line;
+							line=line + "Затраты за этот период = "+C_pre;
+							msg = getPopUP(line, "?", "popUp_"+N+"_"+n+"_"+i+"_"+x);
+							line = "";
+							line=line + C_+"&nbsp;+&nbsp;"+C_stor;
+							if (n!=1) {
+								line=line + "&nbsp;+&nbsp;" + C_pre;
+							}
+							line = line + "<br />" + tmp + "<br />";
+							if (($.isNumeric(C_))&&($.isNumeric(C_stor))&&($.isNumeric(C_pre))&&($.isNumeric(C_full))) {
+								if (n==1) {
+									if (C_stor!=0) {
+										//cell.append("NaN(C!=0)");
+										cell.append("&mdash;");
+									} else {
+										cell.append(line);
+										appendPopUp(cell, msg);
+										if (minC>tmp) {
+											minC = tmp;
+											minX = x;
+										}
+									}
+								} else {
+									cell.append(line);
+									appendPopUp(cell, msg);
+									if (minC>tmp) {
+										minC = tmp;
+										minX = x;
+									}
+								}
+								
+							} else {
+								//cell.append("NaN");
+								cell.append("&mdash;");
+							}
+							
+						}
+					}
+					tmp = "table_"+N+"_"+n+"_tr_"+i+"_td_"+xt+1;
+					row.append("<td style=\"border-style:solid; border-width:1px;\" id=\""+tmp+"\"></td>");
+					cell = $("#"+tmp);
+					if (i==-1) {
+						cell.append("x<sub>"+n+"</sub>");
+					} else {
+						if ($.isNumeric(minX) ) {
+							cell.append(minX);
+						} else {
+							cell.append("&mdash;");
+						}
+					}				
+					
+					tmp = "table_"+N+"_"+n+"_tr_"+i+"_td_"+xt+2;
+					row.append("<td style=\"border-style:solid; border-width:1px;\" id=\""+tmp+"\"></td>");
+					cell = $("#"+tmp);
+					if (i==-1) {
+						cell.append("C<sub>"+n+"</sub>");
+					} else {
+						if ($.isNumeric(minX) ) {
+							cell.append(minC);
+							//var index = Math.floor(minX);
+							C[C.length-1][i] = minC;
+						} else {
+							cell.append("&mdash;");
+						}
+					}	
+					
+				}
+				
+			}
+			
+		}
+		
+	});
+	$('#load_example').click( function () {
+		$('#Dt').val("2, 6, 2, 7");
+		$('#Cpr').val("3");
+		$('#Cre').val("6");
+		$('#it').val("3");
+		$('#xt').val("5");
+		$('#N').val("4");
+	});
+});
+</script>
+</body>
+</html>
