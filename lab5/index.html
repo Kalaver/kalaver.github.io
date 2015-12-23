@@ -47,6 +47,11 @@ test
 		<input type="number" id="N" value="" data-clear-btn="true" placeholder="Число периодов"/>
 	</div>
 	<div class="ui-bar ui-bar-e">
+		<label>
+			<input type="checkbox" id="info" />Дополнительная информация
+		</label>
+	</div>
+	<div class="ui-bar ui-bar-e">
 		<input type="button" id="calc" value="Рассчитать" />
 	</div>
 </form>
@@ -54,9 +59,13 @@ test
 <div data-role="popup" id="popUp_main" class="ui-content">text</div>
 <div id="content" class="ui-bar ui-bar-e" data-role="content"></div>
 <script type="text/javascript">
-function getPopUP(message, alt, id){
+function getPopUP(message, alt, id, show){
 	var r = "";
+	
 	r = '<a href="#popUp_main" data-inline="true" data-rel="popup" data-position-to="window" style="display:none;" onClick="showPopUP(\''+id+'\');">';
+	if (show) {
+		r= r.replace("display:none;","");
+	}
 	r = r + alt;
 	r = r + '</a>';
 	r = r + '<div id="'+id+'" style="display:none;">';
@@ -93,6 +102,7 @@ $(document).ready( function() {
 		var Cpr = $('#Cpr').val();
 		var Cre = $('#Cre').val();
 		var Nmax = $('#N').val();
+		var info = $("#info").prop("checked");
 		var tmp=0;
 		$('#given').append("Спрос:"+"<br />");
 		line="";
@@ -244,21 +254,29 @@ $(document).ready( function() {
 							
 						
 							line="";
-							line=line + "Производим x<sub>i</sub> = "+x+"<br />";
+							line=line + "Производим x = "+x+"<br />";
 							C_ = C[0][x];
-							line=line + "Затраты за производство  = С<sub>"+n+"</sub>("+ x +")="+C_+"<br />";
+							line=line + "Затраты на производство  = С<sub>"+n+"</sub>("+ x +")="+C_+"<br />";
 							line=line + "Есть на складе i = "+i+"<br />";
 							C_stor = (i+x-D);
-							line=line + "Затраты на хранение = "+C_stor+"<br />";
+							line=line + "Затраты на хранение = (i+x-D) = ("+i+"+"+x+"-"+D+") = "+C_stor+"<br />";
 							C_pre = C[n-1][i+x-D];
 							if (n!=1) {
-								line=line + "Затраты за предидущий период = С<sub>"+(n-1)+"</sub>("+(i+x-D)+") = "+C_pre +"<br />";
+								line=line + "Затраты за предыдущий период = С<sub>"+(n-1)+"</sub>("+(i+x-D)+") = "+C_pre +"<br />";
 							}
 							C_full = C_ + C_stor + C_pre;
 							tmp = C_full;
 							msg = line;
-							line=line + "Затраты за этот период = "+C_pre;
-							msg = getPopUP(line, "?", "popUp_"+N+"_"+n+"_"+i+"_"+x);
+							line=line + "Затраты = С<sub>"+n+"</sub>("+ x +") + (i+x-D)"
+							if (n!=1) {
+								line=line + " + С<sub>"+(n-1)+"</sub>("+(i+x-D)+")";
+							}
+							line=line + " = " + C_+"&nbsp;+&nbsp;"+C_stor;
+							if (n!=1) {
+								line=line + "&nbsp;+&nbsp;" + C_pre;
+							}
+							line = line + " = " + C_full;
+							msg = getPopUP(line, "?", "popUp_"+N+"_"+n+"_"+i+"_"+x, info);
 							line = "";
 							line=line + C_+"&nbsp;+&nbsp;"+C_stor;
 							if (n!=1) {
