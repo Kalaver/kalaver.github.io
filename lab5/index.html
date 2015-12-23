@@ -144,6 +144,9 @@ $(document).ready( function() {
 		var msg;
 		for (N=1; N<=Nmax; N++){
 			line="";
+			$('#solution').append(line+"<br />");
+			$('#solution').append(line+"<br />");
+			$('#solution').append(line+"<br />");
 			line="Расчет на " + N + " период";
 			if ((N%10>1)&&(N%10<=4)) {
 				if ((N>=10)&&(N<=20)) {
@@ -183,9 +186,9 @@ $(document).ready( function() {
 				line = "D(спрос) = "+D;
 				$('#solution').append(line+"<br />");
 				
-				line="f<SUB>"+n+"</SUB> = C<SUB>"+n+"</SUB> + (i + x - D) + </SUB>";
+				line="f<SUB>"+n+"</SUB> = C<SUB>"+n+"</SUB> + (i + x - D)</SUB>";
 				if (n!=1) {
-					line = line + "C<SUB>"+n-1+"</SUB>";
+					line = line + " + C<SUB>"+(n-1)+"</SUB>";
 				}
 				$('#solution').append(line+"<br />");
 				
