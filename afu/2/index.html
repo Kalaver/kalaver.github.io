@@ -16,41 +16,51 @@
 Encrypted!
 </body>
 <script>
+
+function redirectTo404(){
+	window.location = "http://kalaver.github.io/404";
+}
+
 var e = "S/FTMHisFfwqpSzxXoejY5YYu4R5V+GhiXRGdQPeqBvMnaZfEzbChj87IwvHQ5KiSTfnC8z85/Mie6Grxu/ej0a1aAVsqoHFtWO3x5BsrlcGhMuxPWSKDz/BGAS/Ku5DyLndvIjRRvZxguoeQNUZ4k1SWBRozrsjRuuCsE5k5FSbKNLh0kDV/eONnWI0RhiHZaavPFJwhmKj2m57IY3lhEWGGWv5EjqBHT4GrYBQLjUaBsd6YalzX2W6Nzf2ttwJPMsTeX96hXg4QpjV/tHb3csH6ZpP3ofAPpZtaKXNaI0Mr1UaiBjJiCH+S4DtwqlhSF6jRb6/8WlDC65khsDSHb/BLb1mXu5pRPJde8okN6B9TMJ0Hu8kEvzHlyE4hzdoAMQlLmJM4faZzEx3pkj8v1i4tEq4DQPGnRduG89AlCOku4dYpl/w0exOW+bgOoQHuUK6G8aWabKyghQlUG/W9J8ipd0JUKZ3aj9tQzqUJhdRZnzVdr1TT1LrtGPxlMI2AKXQnWAk+QfUuHbqyXl9z9WeFk0shFuxO0fr7jK44SUYYGvYm3HXLR4vC+o9pG5UtEzqGwH1uWyyT8YGPrhk+8vcoBc62LhvXSA4DXaqnspszqup6A5x1NAn2B0GEy+tET6mm3lFCAB6U49HjM4JBrVLWQgpDmRKGfe+9pB8/RchGggipuBuW1QR4zzbwZTE3FW26w67Z+gOOwyY6mPl7nuhwMh24vjZb8+uPBrl4Cfb2QrmRLTCyologpjQKqqkTezauq095rVSzvMxGoPhcpwoPLZxba2UEWz79Tf4BVTMkyRF3IDCbJSvJmxQrewFtnIDd9BZD0L3XmzFq0oLx+F9fM+snLccTMJV+7rO8wynUQZFNM30DRmn3fwtLaF1OCfC8kNXGKv09IVfUj+d3xSuVQPFZtjQURflycuW0E2GbeNBl0xqmWajlojHeb3zWiVr54q7hFpbyAiOEzbtocaTzyrNXMZziRI/gdhJODQ=";
 var hash = "b25e2cc7c8acda9af758559ce174e2f6";
 
 var password = window.location.hash;
-
-var iterations = 1000;
-var keySize = 256;
-var ivSize = 128;
-var salt = CryptoJS.enc.Hex.parse('986217fba818f0d604b231600431fa1e');
-
-var output = CryptoJS.PBKDF2(password, salt, {
-	keySize: (keySize+ivSize)/32,
-	iterations: iterations
-});
-
-output.clamp();
-
-var key = CryptoJS.lib.WordArray.create(output.words.slice(0, keySize/32));
-var iv = CryptoJS.lib.WordArray.create(output.words.slice(keySize/32));
-
-var decrypted = CryptoJS.AES.decrypt(e, key, {iv: iv, padding: CryptoJS.pad.Pkcs7, mode: CryptoJS.mode.CBC});
-try {
-   var b = decrypted.toString(CryptoJS.enc.Utf8);
-} catch (ex) {
-   var b = "";
-}
-var mHash = CryptoJS.MD5(b).toString();
-var body = document.getElementsByTagName("body")[0];
-if (mHash.toString()==hash){
-	body.innerHTML = b;
-	$.getScript( "./controller.js", function( data, textStatus, jqxhr ) {
-	  console.log( "Load was performed." );
-	});
+var l = password.length;
+if (l <= 2) {
+	redirectTo404();
 } else {
-    body.innerHTML = "Password is incorrect!";
+	var iterations = 1000;
+	var keySize = 256;
+	var ivSize = 128;
+	var salt = CryptoJS.enc.Hex.parse('986217fba818f0d604b231600431fa1e');
+
+	var output = CryptoJS.PBKDF2(password, salt, {
+		keySize: (keySize+ivSize)/32,
+		iterations: iterations
+	});
+
+	output.clamp();
+
+	var key = CryptoJS.lib.WordArray.create(output.words.slice(0, keySize/32));
+	var iv = CryptoJS.lib.WordArray.create(output.words.slice(keySize/32));
+
+	var decrypted = CryptoJS.AES.decrypt(e, key, {iv: iv, padding: CryptoJS.pad.Pkcs7, mode: CryptoJS.mode.CBC});
+	try {
+	   var b = decrypted.toString(CryptoJS.enc.Utf8);
+	} catch (ex) {
+	   var b = "";
+	}
+	var mHash = CryptoJS.MD5(b).toString();
+	var body = document.getElementsByTagName("body")[0];
+	if (mHash.toString()==hash){
+		body.innerHTML = b;
+		$.getScript( "./controller.js", function( data, textStatus, jqxhr ) {
+		  console.log( "Load was performed." );
+		});
+	} else {
+		body.innerHTML = "Password is incorrect!";
+		redirectTo404();
+	}
 }
 </script>
 </html>
