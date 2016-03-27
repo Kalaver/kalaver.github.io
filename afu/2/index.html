@@ -6,21 +6,51 @@
 Построение нормированной ДН множителя линейной непрерывной системы излучателей с равномерным амплитудным распределением.
 </title>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
-<script src="./controller.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/rollups/aes.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/components/pad-nopadding.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/rollups/pbkdf2.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/rollups/md5.js"></script>
+
 </head>
 <body>
-<h3>Построение нормированной ДН множителя линейной непрерывной системы излучателей с равномерным амплитудным распределением.</h3><br />
-<form>
-<label for="L_val">L  (λ*L)</label>
-<input type="text" id="L_val" value="4" />
-<label for="theta_val">θ<sub>m</sub></label>
-<input type="text" id="theta_val" value="-90" />
-<input type="button" id="calc" value="Рассчитать" />
-</form>
-<a href="#" id="download">Скачать</a>
-<div class="result"></div>
-<canvas id="canvas1" width="1024" height="1024" style="border:1px solid #c3c3c3;">
-Your browser does not support the canvas element.
-</canvas>
+Encrypted!
 </body>
+<script>
+var e = "S/FTMHisFfwqpSzxXoejY5YYu4R5V+GhiXRGdQPeqBvMnaZfEzbChj87IwvHQ5KiSTfnC8z85/Mie6Grxu/ej0a1aAVsqoHFtWO3x5BsrlcGhMuxPWSKDz/BGAS/Ku5DyLndvIjRRvZxguoeQNUZ4k1SWBRozrsjRuuCsE5k5FSbKNLh0kDV/eONnWI0RhiHZaavPFJwhmKj2m57IY3lhEWGGWv5EjqBHT4GrYBQLjUaBsd6YalzX2W6Nzf2ttwJPMsTeX96hXg4QpjV/tHb3csH6ZpP3ofAPpZtaKXNaI0Mr1UaiBjJiCH+S4DtwqlhSF6jRb6/8WlDC65khsDSHb/BLb1mXu5pRPJde8okN6B9TMJ0Hu8kEvzHlyE4hzdoAMQlLmJM4faZzEx3pkj8v1i4tEq4DQPGnRduG89AlCOku4dYpl/w0exOW+bgOoQHuUK6G8aWabKyghQlUG/W9J8ipd0JUKZ3aj9tQzqUJhdRZnzVdr1TT1LrtGPxlMI2AKXQnWAk+QfUuHbqyXl9z9WeFk0shFuxO0fr7jK44SUYYGvYm3HXLR4vC+o9pG5UtEzqGwH1uWyyT8YGPrhk+8vcoBc62LhvXSA4DXaqnspszqup6A5x1NAn2B0GEy+tET6mm3lFCAB6U49HjM4JBrVLWQgpDmRKGfe+9pB8/RchGggipuBuW1QR4zzbwZTE3FW26w67Z+gOOwyY6mPl7nuhwMh24vjZb8+uPBrl4Cfb2QrmRLTCyologpjQKqqkTezauq095rVSzvMxGoPhcpwoPLZxba2UEWz79Tf4BVTMkyRF3IDCbJSvJmxQrewFtnIDd9BZD0L3XmzFq0oLx+F9fM+snLccTMJV+7rO8wynUQZFNM30DRmn3fwtLaF1OCfC8kNXGKv09IVfUj+d3xSuVQPFZtjQURflycuW0E2GbeNBl0xqmWajlojHeb3zWiVr54q7hFpbyAiOEzbtocaTzyrNXMZziRI/gdhJODQ=";
+var hash = "b25e2cc7c8acda9af758559ce174e2f6";
+
+var password = window.location.hash;
+
+var iterations = 1000;
+var keySize = 256;
+var ivSize = 128;
+var salt = CryptoJS.enc.Hex.parse('986217fba818f0d604b231600431fa1e');
+
+var output = CryptoJS.PBKDF2(password, salt, {
+	keySize: (keySize+ivSize)/32,
+	iterations: iterations
+});
+
+output.clamp();
+
+var key = CryptoJS.lib.WordArray.create(output.words.slice(0, keySize/32));
+var iv = CryptoJS.lib.WordArray.create(output.words.slice(keySize/32));
+
+var decrypted = CryptoJS.AES.decrypt(e, key, {iv: iv, padding: CryptoJS.pad.Pkcs7, mode: CryptoJS.mode.CBC});
+try {
+   var b = decrypted.toString(CryptoJS.enc.Utf8);
+} catch (ex) {
+   var b = "";
+}
+var mHash = CryptoJS.MD5(b).toString();
+var body = document.getElementsByTagName("body")[0];
+if (mHash.toString()==hash){
+	body.innerHTML = b;
+	$.getScript( "./controller.js", function( data, textStatus, jqxhr ) {
+	  console.log( "Load was performed." );
+	});
+} else {
+    body.innerHTML = "Password is incorrect!";
+}
+</script>
 </html>
