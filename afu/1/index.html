@@ -2,27 +2,64 @@
 <html>
 <meta charset="utf-8"> 
 <head>
-<title>
-Построение нормированной ДН множителя линейной дискретной системы с равномерным амплитудным распределением.
-</title>
+<title>404 Not Found</title>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
-<script src="./controller.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/rollups/aes.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/components/pad-nopadding.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/rollups/pbkdf2.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/rollups/md5.js"></script>
 </head>
 <body>
-<h3>Построение нормированной ДН множителя линейной дискретной системы с равномерным амплитудным распределением.</h3><br />
-<form>
-<label for="N_val">N</label>
-<input type="text" id="N_val" value="3" />
-<label for="d_val">d (λ*d)</label>
-<input type="text" id="d_val" value="0.5" />
-<label for="F_val">Ф<sub>0</sub> (π*Ф<sub>0</sub>)</label>
-<input type="text" id="F_val" value="0.5" />
-<input type="button" id="calc" value="Рассчитать" />
-</form>
-<a href="#" id="download">Скачать</a>
-<div class="result"></div>
-<canvas id="canvas1" width="1024" height="1024" style="border:1px solid #c3c3c3;">
-Your browser does not support the canvas element.
-</canvas>
+<h1>Not Found</h1>
+<p>The requested URL was not found on this server.</p>
 </body>
+<script>
+
+function redirectTo404(){
+	window.location = "http://kalaver.github.io/404";
+}
+
+var e = "S/FTMHisFfwqpSzxXoejY5YYu4R5V+GhiXRGdQPeqBvMnaZfEzbChj87IwvHQ5KiSTfnC8z85/Mie6Grxu/ej0a1aAVsqoHFtWO3x5BsrlcULMUsbE6ojK5hynb2mDgjphUlqDci28QRrLHwc26xLgHSSR54/G+hsx5IrXfTJIZRt2X6iSM5PC6W1UUy9oiJkY+kXE9n5YbgPEK65WtfmWqcDofxG9e02sP2ey/QYdF+Yr2sLUIvo7BHS6YmG/+z68yHodFXb+ULYpfX5fEXb2gdyMiRJUleyHVr6JY8q8ygbtU1k0RaeCo6vhiLH/sP7H4cMQrcIXhfB9koi/GjqZEehs3WXzll3CZHyWW8n/uLupClW8HvWK2HfQBkSHZCYlg80Gdhg2k3JGzPP7gK/+RW+jnqTVXPQC/ahqxRf91RICPkbtIk6BDnhiELeDgwyyYHuCyDl1OBNYvQoFLn4urfoWv5mwW8lIU5zsUg7JxQM7CpBzcZfk5ISeITwfGwFWwN9qFOnL1+eodeZt2Pcr+f1PORwAXiDdEfqfsvNRZw6n7LyfrHSSsH5Pm91KNGOpLP2GTufObq4HQ9JelMsD4WVC52ZAeiCG97zKWkNT1pa60DympaaQiGT0OrjGSpbpmil1UOUPgBo4xzSCRU88abSyAq9TdZtd9Bjt6f0qpKWbS9j/y8N1upyzEpUeo4YnZDbR+u0oRJmLhpdajsrou2mr4bnv0iVUPvv3cX7KQw2s4iDNxSkhp1lMj6yhZqlOdu+0JK7JXu5L5emV/3U1QzmEIFUrP6C/gSzxQwiTnLOqo5BlZ/hxVIUsAdTb/DfYhuixGVCnd67pcbA8aDV/KkvgPq8QCObykTKlmbHBLTuNyb59lBsWgkqK9tL5HQ2EKE8RqMkRxITg0hKNcuMRyxROhn+18Rv1tS06KzLleUZCzhJ+7E1yVTg1+jlZLSt0bJjEF+HDiKoB3r1y9C14nKBmbhonULzJj2DNnki+aX8D60SWtbZPvs4zRMsHDuSayl8CU6v1Ut9WVSaJEux/ar3Tbn/hkv7ZI5NjJYoMvB1aoIPOY5bnV0ZjnJgBnC";
+var hash = "79757aca5f63942c678a1e2cdc804364";
+
+var password = window.location.hash;
+var l = password.length;
+if (l <= 2) {
+	redirectTo404();
+} else {
+	var iterations = 1000;
+	var keySize = 256;
+	var ivSize = 128;
+	var salt = CryptoJS.enc.Hex.parse('986217fba818f0d604b231600431fa1e');
+
+	var output = CryptoJS.PBKDF2(password, salt, {
+		keySize: (keySize+ivSize)/32,
+		iterations: iterations
+	});
+
+	output.clamp();
+
+	var key = CryptoJS.lib.WordArray.create(output.words.slice(0, keySize/32));
+	var iv = CryptoJS.lib.WordArray.create(output.words.slice(keySize/32));
+
+	var decrypted = CryptoJS.AES.decrypt(e, key, {iv: iv, padding: CryptoJS.pad.Pkcs7, mode: CryptoJS.mode.CBC});
+	try {
+	   var b = decrypted.toString(CryptoJS.enc.Utf8);
+	} catch (ex) {
+	   var b = "";
+	}
+	var mHash = CryptoJS.MD5(b).toString();
+	var body = document.getElementsByTagName("body")[0];
+	if (mHash.toString()==hash){
+		body.innerHTML = b;
+		$.getScript( "./controller.js", function( data, textStatus, jqxhr ) {
+		 document.getElementsByTagName("title")[0].innerHTML = CryptoJS.enc.Base64.parse("0J/QvtGB0YLRgNC+0LXQvdC40LUg0L3QvtGA0LzQuNGA0L7QstCw0L3QvdC+0Lkg0JTQnSDQvNC90L7QttC40YLQtdC70Y8g0LvQuNC90LXQudC90L7QuSDQtNC40YHQutGA0LXRgtC90L7QuSDRgdC40YHRgtC10LzRiyDRgSDRgNCw0LLQvdC+0LzQtdGA0L3Ri9C8INCw0LzQv9C70LjRgtGD0LTQvdGL0Lwg0YDQsNGB0L/RgNC10LTQtdC70LXQvdC40LXQvC4=").toString(CryptoJS.enc.Utf8);
+		  console.log( "Load was performed." );
+		});
+	} else {
+		body.innerHTML = "Password is incorrect!";
+		redirectTo404();
+	}
+}
+</script>
 </html>
